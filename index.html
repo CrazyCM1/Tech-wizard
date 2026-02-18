@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillMatch - Resume Screening</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <div class="logo">SM</div>
+        <div class="brand-name">SkillMatch</div>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#about">About</a>
+      </nav>
+
+      <button class="btn btn-primary" id="startBtn">Start Matching</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="hero">
+      <div class="hero-card">
+        <div class="tag">⚡ Smart Resume Screening (Vanilla JS)</div>
+
+        <h1>Match resumes with job descriptions in seconds.</h1>
+
+        <p>
+          Stop wasting time on manual screening.
+          SkillMatch extracts skills, tools, experience and gives you an explainable fit score —
+          so you can shortlist faster and fairly.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="heroStartBtn">🚀 Start Matching</button>
+          <button class="btn btn-ghost" id="demoBtn">✨ Try Demo</button>
+          <button class="btn btn-ghost" id="scrollBtn">⬇ Explore</button>
+        </div>
+      </div>
+
+      <aside class="preview">
+        <div class="preview-title">
+          <div class="preview-title-text">Candidate Preview</div>
+          <div class="pill">Explainable</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-row">
+            <span>Fit Score</span>
+            <span class="score" id="scoreText">0%</span>
+          </div>
+          <div class="bar">
+            <div class="fill" id="scoreFill"></div>
+          </div>
+
+          <div class="skills">
+            <span class="chip">JavaScript</span>
+            <span class="chip">React</span>
+            <span class="chip">SQL</span>
+            <span class="chip">Node.js</span>
+            <span class="chip">Git</span>
+          </div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-title">Insights</div>
+          <div class="mini-text">
+            ✔ Strong frontend skills <br/>
+            ✔ Project-based experience <br/>
+            ❌ Missing: MongoDB, AWS <br/>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="features">
+      <h2>Key Features</h2>
+      <p class="sub">
+        Designed for recruiters, students, and HR teams. Works fully in the browser using only HTML, CSS and JavaScript.
+      </p>
+
+      <div class="grid3">
+        <div class="feature">
+          <h3>📌 Skill Extraction</h3>
+          <p>Detect skills, tools, and technologies using dictionaries + regex matching.</p>
+        </div>
+
+        <div class="feature">
+          <h3>📊 Candidate Ranking</h3>
+          <p>Score and prioritize candidates using weighted matching (required vs preferred skills).</p>
+        </div>
+
+        <div class="feature">
+          <h3>🧾 Explainable Reports</h3>
+          <p>Shows matched skills, missing skills, and a clear score breakdown for transparency.</p>
+        </div>
+
+        <div class="feature">
+          <h3>🎯 Section Weighting</h3>
+          <p>Skills in Experience/Projects count more than skills listed without evidence.</p>
+        </div>
+
+        <div class="feature">
+          <h3>🕵️ Bias Reduction</h3>
+          <p>Anonymous mode removes emails, phone numbers, and names before scoring.</p>
+        </div>
+
+        <div class="feature">
+          <h3>💡 Works Offline</h3>
+          <p>No backend required. Everything runs locally in the browser (privacy-friendly).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <h2>How it works</h2>
+      <p class="sub">
+        Simple workflow. Paste a job description, paste resumes, and get ranked results instantly.
+      </p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Paste Job Description</h3>
+          <p>The system detects required skills, preferred skills, and important keywords.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Paste / Upload Resumes</h3>
+          <p>It extracts skills, tools, experience signals, and builds a structured profile.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Get Ranked Candidates</h3>
+          <p>Candidates are scored and ranked. Each result includes a clear explanation report.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Export the Report</h3>
+          <p>Download a text report or print the report as PDF directly from the browser.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <h2>About this project</h2>
+      <p class="sub">
+        SkillMatch is a browser-based Resume Screening & Matching system built using vanilla HTML, CSS and JavaScript.
+        It helps reduce manual screening effort, improves candidate-job matching, and provides transparent evaluation.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="aboutStartBtn">Start Matching</button>
+        <button class="btn btn-ghost" id="topBtn">Back to Top</button>
+      </div>
+    </section>
+
+    <footer>
+      © 2026 SkillMatch • Built with HTML, CSS and Vanilla JavaScript • No libraries
+    </footer>
+
+  </main>
+
+  <script src="js/home.js"></script>
+</body>
+</html>
