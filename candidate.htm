@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidate Dashboard - OptiHire</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(rgba(15,23,42,.85),rgba(15,23,42,.85)),
+    url("https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1920&auto=format&fit=crop");
+    background-size:cover;
+    background-position:center;
+    padding:30px;
+    color:white;
+}
+
+/* header */
+.header{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:25px;
+}
+.header img{width:120px;}
+
+/* filters */
+.filters{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-bottom:20px;
+}
+.filters select,.filters button{
+    padding:10px;
+    border-radius:8px;
+    border:none;
+}
+
+/* search */
+.search-box{
+    max-width:500px;
+    margin:auto;
+    margin-bottom:20px;
+}
+.search-box input{
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    border:none;
+    outline:none;
+}
+
+/* grid */
+.jobs{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.job-card{
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(14px);
+    padding:20px;
+    border-radius:18px;
+    box-shadow:0 15px 35px rgba(0,0,0,.3);
+    transition:.25s;
+}
+.job-card:hover{
+    transform:translateY(-6px) scale(1.02);
+}
+
+.job-title{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:6px;
+}
+.job-company{
+    font-size:13px;
+    opacity:.9;
+    margin-bottom:12px;
+    line-height:1.5;
+}
+
+.save-btn,.unsave-btn{
+    width:100%;
+    padding:8px;
+    margin-bottom:10px;
+    border:none;
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+}
+.save-btn{background:#f59e0b;}
+.unsave-btn{background:#ef4444;}
+
+.apply-btn{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,#2563eb,#3b82f6);
+    color:white;
+    cursor:pointer;
+    font-weight:500;
+}
+
+.apply-btn:disabled{
+    background:#64748b;
+    cursor:not-allowed;
+}
+
+.status{
+    font-size:13px;
+    margin-top:6px;
+    color:#22c55e;
+}
+
+.no-jobs{
+    text-align:center;
+    margin-top:40px;
+    opacity:.8;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <img src="logo.png" alt="OptiHire">
+</div>
+
+<!-- SEARCH -->
+<div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search jobs..." onkeyup="applyFilters()">
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+    <select id="locationFilter" onchange="applyFilters()">
+        <option value="">All Locations</option>
+        <option>Remote</option>
+        <option>Bangalore</option>
+        <option>Delhi</option>
+        <option>Mumbai</option>
+        <option>Hyderabad</option>
+        <option>Pune</option>
+        <option>Noida</option>
+    </select>
+
+    <select id="typeFilter" onchange="applyFilters()">
+        <option value="">All Types</option>
+        <option>Full-time</option>
+        <option>Internship</option>
+        <option>Contract</option>
+    </select>
+
+    <button onclick="clearFilters()">Clear Filters</button>
+</div>
+
+<h3>Saved Jobs ❤️</h3>
+<div class="jobs" id="savedContainer"></div>
+
+<h3 style="margin-top:20px;">Available Jobs</h3>
+<div class="jobs" id="jobContainer"></div>
+
+<p class="no-jobs" id="noJobs" style="display:none;">No jobs found</p>
+
+<script>
+// ================= JOB DATA =================
+const jobs=[
+ {id:1,title:"Frontend Developer",company:"TechNova",location:"Remote",salary:"₹6–10 LPA",type:"Full-time",exp:"1-3 yrs",skills:"React, HTML, CSS",posted:"2 days ago"},
+ {id:2,title:"Backend Developer",company:"CodeCraft",location:"Bangalore",salary:"₹8–14 LPA",type:"Full-time",exp:"2-5 yrs",skills:"Node.js, MongoDB",posted:"1 day ago"},
+ {id:3,title:"UI/UX Designer",company:"PixelSoft",location:"Delhi",salary:"₹5–9 LPA",type:"Internship",exp:"0-1 yr",skills:"Figma, Adobe XD",posted:"3 days ago"},
+ {id:4,title:"Data Analyst",company:"DataSphere",location:"Mumbai",salary:"₹7–12 LPA",type:"Full-time",exp:"1-4 yrs",skills:"Python, SQL",posted:"Today"},
+ {id:5,title:"AI/ML Engineer",company:"NeuroLabs",location:"Hyderabad",salary:"₹12–20 LPA",type:"Full-time",exp:"2-6 yrs",skills:"TensorFlow",posted:"5 days ago"},
+ {id:6,title:"DevOps Engineer",company:"CloudEdge",location:"Pune",salary:"₹10–18 LPA",type:"Full-time",exp:"3-6 yrs",skills:"Docker",posted:"1 week ago"},
+ {id:7,title:"Mobile App Developer",company:"Appify",location:"Remote",salary:"₹6–11 LPA",type:"Contract",exp:"1-3 yrs",skills:"Flutter",posted:"Today"},
+ {id:8,title:"Cyber Security Analyst",company:"SecureNet",location:"Noida",salary:"₹9–15 LPA",type:"Full-time",exp:"2-5 yrs",skills:"SIEM",posted:"4 days ago"}
+];
+
+// ================= STORAGE =================
+const getSavedJobs=()=>JSON.parse(localStorage.getItem("savedJobs")||"[]");
+const getApplications=()=>JSON.parse(localStorage.getItem("applications")||"{}");
+const getApplyCount=()=>JSON.parse(localStorage.getItem("applyCount")||"{}");
+
+// ================= RENDER =================
+function renderJobs(list){
+    const container=document.getElementById("jobContainer");
+    const noJobs=document.getElementById("noJobs");
+    const apps=getApplications();
+    const saved=getSavedJobs();
+    const counts=getApplyCount();
+
+    container.innerHTML="";
+
+    if(list.length===0){
+        noJobs.style.display="block";
+        return;
+    }
+    noJobs.style.display="none";
+
+    list.forEach(job=>{
+        const applied=apps[job.id];
+        const isSaved=saved.includes(job.id);
+        const count=counts[job.id]||0;
+
+        container.innerHTML+=`
+        <div class="job-card">
+            <div class="job-title">${job.title}</div>
+
+            <div class="job-company">
+                ${job.company} • ${job.location}<br>
+                💰 ${job.salary} | 🧑‍💻 ${job.type}<br>
+                🎯 ${job.exp} | 🛠 ${job.skills}<br>
+                ⏱ Posted: ${job.posted}<br>
+                👥 Applicants: ${count}
+            </div>
+
+            ${
+                isSaved
+                ? `<button class="unsave-btn" onclick="unsaveJob(${job.id})">❌ Unsave</button>`
+                : `<button class="save-btn" onclick="saveJob(${job.id})">❤️ Save Job</button>`
+            }
+
+            <input type="file" id="file-${job.id}" style="margin-bottom:8px">
+
+            <button class="apply-btn"
+                onclick="applyJob(${job.id})"
+                ${applied ? "disabled" : ""}>
+                ${applied ? "✔ Applied" : "Apply Now"}
+            </button>
+
+            ${applied ? `<div class="status">Application submitted</div>`:""}
+        </div>`;
+    });
+}
+
+// ================= FILTER =================
+function applyFilters(){
+    const text=document.getElementById("searchInput").value.toLowerCase();
+    const loc=document.getElementById("locationFilter").value;
+    const type=document.getElementById("typeFilter").value;
+
+    const filtered=jobs.filter(j=>
+        (!loc || j.location===loc) &&
+        (!type || j.type===type) &&
+        (j.title.toLowerCase().includes(text) ||
+         j.company.toLowerCase().includes(text))
+    );
+
+    renderJobs(filtered);
+}
+
+function clearFilters(){
+    searchInput.value="";
+    locationFilter.value="";
+    typeFilter.value="";
+    renderJobs(jobs);
+}
+
+// ================= SAVE =================
+function saveJob(id){
+    const saved=getSavedJobs();
+    if(!saved.includes(id)){
+        saved.push(id);
+        localStorage.setItem("savedJobs",JSON.stringify(saved));
+        renderSaved(); applyFilters();
+    }
+}
+function unsaveJob(id){
+    let saved=getSavedJobs().filter(x=>x!==id);
+    localStorage.setItem("savedJobs",JSON.stringify(saved));
+    renderSaved(); applyFilters();
+}
+
+// ================= APPLY =================
+function applyJob(id){
+    const file=document.getElementById(`file-${id}`).files[0];
+    if(!file){alert("Upload resume first");return;}
+
+    const apps=getApplications();
+    if(apps[id]) return;
+
+    apps[id]=true;
+    localStorage.setItem("applications",JSON.stringify(apps));
+
+    const counts=getApplyCount();
+    counts[id]=(counts[id]||0)+1;
+    localStorage.setItem("applyCount",JSON.stringify(counts));
+
+    alert("Applied successfully 🚀");
+    applyFilters();
+}
+
+// ================= SAVED =================
+function renderSaved(){
+    const saved=getSavedJobs();
+    const container=document.getElementById("savedContainer");
+    container.innerHTML="";
+
+    saved.forEach(id=>{
+        const job=jobs.find(j=>j.id===id);
+        if(!job) return;
+        container.innerHTML+=`
+        <div class="job-card">
+            <div class="job-title">${job.title}</div>
+            <div class="job-company">${job.company} • ${job.location}</div>
+        </div>`;
+    });
+}
+
+// ================= INIT =================
+renderJobs(jobs);
+renderSaved();
+</script>
+</body>
+</html>
