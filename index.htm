@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiHire Auth</title>
+
+<style>
+/* ===== RESET ===== */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+
+body{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:url("https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=2070") center/cover no-repeat;
+  padding:16px;
+}
+
+/* ================= LOADING SCREEN ================= */
+#loadingScreen{
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#e0f2fe,#dcfce7);
+  overflow:hidden;
+  z-index:999;
+}
+
+/* ===== 3D PARTICLES ===== */
+.particles{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+}
+
+.particles span{
+  position:absolute;
+  width:6px;
+  height:6px;
+  background:rgba(37,99,235,.25);
+  border-radius:50%;
+  animation:float 10s linear infinite;
+}
+
+@keyframes float{
+  from{transform:translateY(100vh) scale(.5);}
+  to{transform:translateY(-10vh) scale(1.2);}
+}
+
+/* ===== LOGO ===== */
+.logo{
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  animation:spin 6s linear infinite; /* slower */
+  z-index:2;
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+/* ===== GLASS SHINE ===== */
+.logo-wrapper{
+  position:relative;
+}
+
+.logo-wrapper::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.6),transparent);
+  animation:shine 3s infinite;
+}
+
+@keyframes shine{
+  from{transform:translateX(-150%);}
+  to{transform:translateX(150%);}
+}
+
+/* ===== LOADING BAR ===== */
+.loading-bar{
+  width:220px;
+  height:6px;
+  background:#e5e7eb;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:20px;
+  z-index:2;
+}
+
+.loading-fill{
+  height:100%;
+  width:0%;
+  background:#2563eb;
+  animation:load 2.5s linear forwards;
+}
+
+@keyframes load{
+  to{width:100%;}
+}
+
+/* ================= CARD ================= */
+.card{
+  width:100%;
+  max-width:420px;
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(14px);
+  border-radius:24px;
+  padding:30px;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
+  position:relative;
+  overflow:hidden;
+}
+
+/* glass sweep */
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.5),transparent);
+  transform:translateX(-120%);
+  animation:cardShine 5s infinite;
+}
+
+@keyframes cardShine{
+  to{transform:translateX(120%);}
+}
+
+.title{
+  text-align:center;
+  font-size:26px;
+  font-weight:700;
+  margin-bottom:20px;
+}
+
+/* ================= INPUTS ================= */
+.input-group{
+  margin-bottom:14px;
+}
+
+input, select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid #d1d5db;
+  font-size:14px;
+  outline:none;
+  transition:.2s;
+}
+
+input:focus, select:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+.password-wrapper{
+  position:relative;
+}
+
+.show-btn{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  color:#2563eb;
+  font-size:13px;
+  cursor:pointer;
+}
+
+/* ================= BUTTON ================= */
+.login-btn{
+  width:100%;
+  padding:13px;
+  border:none;
+  border-radius:12px;
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:.25s;
+}
+
+.login-btn:hover{
+  background:#1d4ed8;
+  transform:translateY(-1px);
+}
+
+/* ================= FOOTER ================= */
+.footer{
+  text-align:center;
+  font-size:13px;
+  margin-top:16px;
+}
+
+.footer a{
+  color:#2563eb;
+  font-weight:600;
+  cursor:pointer;
+  text-decoration:none;
+}
+
+/* ================= FORM SWITCH ================= */
+.form{
+  display:none;
+  animation:fade .5s ease;
+}
+
+.form.active{
+  display:block;
+}
+
+@keyframes fade{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* responsive */
+@media(max-width:480px){
+  .card{padding:24px;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= LOADING ================= -->
+<div id="loadingScreen">
+  <div class="particles" id="particles"></div>
+
+  <div class="logo-wrapper">
+    <img src="logo.png" class="logo" alt="logo">
+  </div>
+
+  <div class="loading-bar">
+    <div class="loading-fill"></div>
+  </div>
+</div>
+
+<!-- ================= AUTH CARD ================= -->
+<div class="card">
+
+  <!-- LOGIN -->
+  <div id="loginForm" class="form active">
+    <div class="title">Login</div>
+
+    <div class="input-group">
+      <input type="email" placeholder="Email">
+    </div>
+
+    <div class="input-group password-wrapper">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button class="show-btn" onclick="togglePassword('loginPass', this)">Show</button>
+    </div>
+
+    <button class="login-btn">Login</button>
+
+    <div class="footer">
+      Don't have an account?
+      <a onclick="switchForm('register')">Register</a>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerForm" class="form">
+    <div class="title">Create Account</div>
+
+    <div class="input-group">
+      <input type="text" placeholder="Full Name">
+    </div>
+
+    <div class="input-group">
+      <input type="email" placeholder="Email">
+    </div>
+
+    <div class="input-group">
+      <select>
+        <option>Register as Candidate</option>
+        <option>Register as Recruiter</option>
+      </select>
+    </div>
+
+    <div class="input-group password-wrapper">
+      <input type="password" id="regPass" placeholder="Password">
+      <button class="show-btn" onclick="togglePassword('regPass', this)">Show</button>
+    </div>
+
+    <!-- ✅ CONFIRM PASSWORD ADDED -->
+    <div class="input-group password-wrapper">
+      <input type="password" id="confirmPass" placeholder="Confirm Password">
+      <button class="show-btn" onclick="togglePassword('confirmPass', this)">Show</button>
+    </div>
+
+    <button class="login-btn">Create Account</button>
+
+    <div class="footer">
+      Already have an account?
+      <a onclick="switchForm('login')">Login</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===== loading hide ===== */
+setTimeout(()=>{
+  document.getElementById("loadingScreen").style.display="none";
+},2500);
+
+/* ===== toggle password ===== */
+function togglePassword(id,btn){
+  const input=document.getElementById(id);
+  if(input.type==="password"){
+    input.type="text";
+    btn.textContent="Hide";
+  }else{
+    input.type="password";
+    btn.textContent="Show";
+  }
+}
+
+/* ===== switch forms ===== */
+function switchForm(type){
+  document.getElementById("loginForm").classList.remove("active");
+  document.getElementById("registerForm").classList.remove("active");
+
+  if(type==="register"){
+    document.getElementById("registerForm").classList.add("active");
+  }else{
+    document.getElementById("loginForm").classList.add("active");
+  }
+}
+
+/* ===== generate particles ===== */
+const container=document.getElementById("particles");
+for(let i=0;i<35;i++){
+  const s=document.createElement("span");
+  s.style.left=Math.random()*100+"%";
+  s.style.animationDuration=(6+Math.random()*6)+"s";
+  s.style.animationDelay=Math.random()*5+"s";
+  container.appendChild(s);
+}
+</script>
+
+</body>
+</html>
