@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Resume Generator </title>
+<style>
+  :root{
+    --accent-color: #000; /* heading + bullet color (theme toggles this) */
+    --heading-font-size: 18px;
+    --subheading-font-size: 16px;
+    --text-font-size: 14px;
+  }
+
+  /* Base */
+  *{ box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  body{ max-width:900px; margin:0 auto; padding:20px; background:#fff; color:#111; }
+  h1,h2,h3,h4{ margin:0 0 8px 0; }
+  label{ display:inline-block; width:150px; font-weight:600; }
+
+  /* Buttons */
+  .btn{ background:black; color:white; padding:8px 14px; border:none; border-radius:6px; cursor:pointer; }
+  .btn.secondary{ background:#666; margin-left:8px; }
+  .btn.ghost{ background:transparent; color:black; border:1px solid #ccc; }
+  .btn.small{ padding:6px 10px; font-size:13px; }
+
+  /* Form layout */
+  .two-columns{ display:flex; gap:20px; }
+  .column{ flex:1; }
+  .form-group{ margin-bottom:10px; }
+  input[type="text"], input[type="email"], input[type="url"], input[type="tel"], textarea {
+    width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:14px;
+  }
+  textarea{ resize:vertical; min-height:60px; }
+
+  /* Sections */
+  section{ margin-bottom:16px; padding-bottom:12px; border-bottom:2px solid #000; position:relative; }
+  h3{ color:var(--accent-color); font-size:var(--heading-font-size); margin-bottom:8px; text-align:left; }
+
+  /* Resume preview */
+  .resume-output{ display:none; padding:18px; margin-top:20px; background:#fff; }
+  .resume-root{ font-size:var(--text-font-size); color:#111; line-height:1.35; }
+  .resume-root h2{ text-align:center; font-size:20px; margin:6px 0 10px 0; color:var(--accent-color); }
+  .resume-root h3{ text-align:center; font-size:18px; margin:6px 0 10px 0; color:var(--accent-color); }
+  .resume-root .contact-info{ text-align:center; margin-bottom:6px; font-size:14px; color:#333; }
+  .resume-root .contact-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:6px; }
+  .resume-root .contact-left{ display:flex; align-items:center; gap:8px; justify-content:flex-start; }
+  .resume-root .contact-right{ display:flex; align-items:center; gap:8px; justify-content:flex-end; }
+
+  /* icon + short url */
+  .profile-link{ display:inline-flex; align-items:center; gap:8px; font-size:14px; text-decoration: underline !important;
+    color: #0066cc !important;  }
+  .profile-link svg{ width:16px; height:16px; flex-shrink:0; }
+
+  /* sections & bullets */
+  .resume-root .section{ margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #e6e6e6; }
+  .resume-root ul{ list-style:none; padding-left:0; margin:0; }
+  .resume-root ul li{ padding-left:22px; position:relative; margin-bottom:6px; }
+ .resume-root ul li:before{
+    content:"•";
+    position:absolute;
+    left:0;
+    color:#000 !important; /* stays black even in blue theme */
+    font-weight:bold;
+    font-size:16px;
+}
+
+
+  /* Skills layout in resume */
+  .resume-root .skills-container{ display:flex; gap:40px; margin-top:8px; }
+  .resume-root .skills-left, .resume-root .skills-right{ flex:1; }
+  .skill-heading{ text-align:left; margin:0 0 6px 20px; font-weight:700; color:var(--accent-color); }
+
+  /* Projects spacing and indent */
+  .resume-root .projects-block{ margin-top:10px; }
+  .project-item{ margin-left:12px; margin-bottom:10px; }
+  .project-number{ font-weight:bold; margin-right:8px; color:var(--accent-color); }
+  .project-details{ margin-left:18px; margin-top:6px; } /* details moved slightly to right */
+
+  /* Preview header controls */
+  .preview-controls{ display:flex; gap:10px; justify-content:flex-end; margin-bottom:10px; }
+
+/* ===== Preview / Print two-column layout ONLY ===== */
+.resume-split {
+  display: grid;
+  grid-template-columns: 32% 68%;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Left & right columns inside preview */
+.resume-left,
+.resume-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Print safety */
+@media print {
+  .resume-split {
+    grid-template-columns: 40% 60%;
+  }
+}
+
+
+  /* Responsive */
+  @media (max-width:640px){
+    .two-columns{ flex-direction:column; }
+    label{ width:120px; display:block; margin-bottom:6px; }
+    .resume-root .contact-row{ flex-direction:column; align-items:center; gap:6px; }
+    .resume-root .skills-container{ flex-direction:column; gap:20px; }
+  }
+
+  @media print {
+
+  /* Hide all non-resume content */
+  #resumeForm,
+  .preview-controls {
+    display: none !important;
+  }
+
+  #resumeOutput {
+    display: block !important;
+  }
+
+  /* REMOVE browser default header/footer (title, URL, date, page number) */
+  @page {
+    margin: 0;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Prevent Chrome from adding link URLs */
+  a::after {
+    content: "" !important;
+  }
+}
+
+/* Keep GitHub icon black, LinkedIn icon blue */
+.profile-link svg {
+    fill: currentColor !important;
+}
+
+/* Right-align education dates */
+.edu-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Bold CGPA, % and Dates */
+.edu-strong {
+    font-weight: 600;
+}
+
+.exp-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.exp-left {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.exp-date {
+  font-weight: 600;
+}
+
+
+
+.tech-skill-line {
+  font-size: 14px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.tech-skill-line strong {
+  font-weight: 600;
+}
+
+/* DEFAULT (centered headings) – already in your CSS */
+.resume-root h3 {
+  text-align: left;
+}
+
+/* LEFT aligned headings when format changes */
+.left-format .resume-root h3 {
+  text-align: center;
+}
+
+
+/* uniform section headings in preview (enforced) */
+.resume-root .section > h3,
+.resume-root > h3 {
+  font-size: 18px;   /* pick the size you want */
+  font-weight: 700;
+}
+
+/* subtitle for custom sections */
+.custom-subtitle {
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 6px 0 4px 0;
+}
+
+@media print {
+
+  /* prevent resume sections from splitting */
+  .resume-root .section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* headings must not separate from content */
+  .resume-root h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* bullets must stay together */
+  .resume-root ul,
+  .resume-root li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* remove top padding for first section only */
+  .resume-root .section:first-child {
+    padding-top: 0;
+  }
+}
+@media (max-width: 640px) {
+  body {
+    overflow-x: hidden; /* prevents accidental horizontal scroll */
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .form-group label {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100% !important;
+    max-width: 100%;
+  }
+}
+
+/* Profile photo */
+.photo-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.photo-preview {
+  width: 140px;
+  height: 140px;
+  border: 2px solid #000;
+  border-radius: 360px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+
+.photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Photo in resume preview */
+.resume-photo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.resume-photo img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 360px;
+  border: 2px solid var(--accent-color);
+}
+
+.resume-root {
+  font-size: 13px;          /* was 14px */
+  line-height: 1.28;        /* tighter */
+}
+
+.resume-root h3 {
+  font-size: 16px;          /* was 18px */
+  margin-bottom: 6px;
+}
+
+.resume-root .section {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.contact-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.contact-vertical a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.edu-school {
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 2px;
+}
+
+.edu-line {
+  font-size: 13px;
+  color: #333;
+}
+
+
+</style>
+</head>
+<body>
+
+<form id="resumeForm" onsubmit="return false;">
+  <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+  <div>
+    <!-- New preview button -->
+    <button type="button" class="btn" onclick="showPreview()">Preview</button>
+    <button type="button" class="btn" id="formatToggle">Change Format</button>
+    <button type="button" class="btn" id="themeToggle">Change Theme</button>
+    <button type="button" class="btn secondary" onclick="resetForm()">Reset Form</button>
+  </div>
+</div>
+
+
+  <!-- Personal Info -->
+  <section id="section-personal">
+    <h3>Personal Information</h3>
+    <div class="form-group">
+      <label for="fullName">Full Name:</label>
+      <input id="fullName" type="text" class="auto-next" />
+    </div>
+
+    <div class="two-columns">
+      <div class="column">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input id="email" type="email" class="auto-next" />
+        </div>
+      </div>
+
+  <div class="column">
+    <div class="form-group">
+      <label for="mobile">Mobile:</label>
+      <input id="mobile" type="tel" pattern="[0-9]{10}" class="auto-next" />
+    </div>
+  </div>
+
+
+
+    <div class="two-columns">
+      <div class="column">
+        <div class="form-group">
+          <label for="github">GitHub (full URL):</label>
+          <input id="github" type="url" placeholder="https://github.com/username" class="auto-next"/>
+        </div>
+      </div>
+      <div class="column">
+        <div class="form-group">
+          <label for="linkedin">LinkedIn (full URL):</label>
+          <input id="linkedin" type="url" placeholder="https://linkedin.com/in/username" class="auto-next" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- Profile Photo -->
+<section id="section-photo">
+  <h3>Profile Photo</h3>
+
+  <div class="form-group photo-upload">
+    <div class="photo-preview">
+      <img id="photoPreview" alt="Preview" style="display:none;">
+      <span id="photoPlaceholder">No Image</span>
+    </div>
+
+    <input
+      type="file"
+      id="profilePhoto"
+      accept="image/*"
+    />
+  </div>
+</section>
+
+
+  <!-- Career objective -->
+  <section id="section-career">
+    <h3>Career Objective</h3>
+    <div class="form-group">
+      <label for="careerObjective" style="width:auto;">Objective:</label>
+      <textarea id="careerObjective" rows="4"></textarea>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section id="section-skills">
+    <div class="two-columns">
+      <div class="column">
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:6px;">
+          <h4 style="margin:0 8px 0 0;">Technical Skill</h4>
+          <button type="button" class="btn small" onclick="addTechSkillField()">+ Add</button>
+        </div>
+      <div id="tech-skills-container">
+  <div class="form-group skill-group" data-index="1" style="display:flex;gap:10px;align-items:center;">
+    <input id="techSkillTitle1" placeholder="Title (e.g., Languages)" style="flex:1;" class="auto-next"/>
+    <input id="techSkill1" placeholder="Skill (e.g., C++, Java)" style="flex:1;" class="auto-next"/>
+  </div>
+
+  <div class="form-group skill-group" data-index="2" style="display:flex;gap:10px;align-items:center;">
+    <input id="techSkillTitle2" placeholder="Title (e.g., Tools)" style="flex:1;" class="auto-next" />
+    <input id="techSkill2" placeholder="Skill (e.g., Git, VS Code)" style="flex:1;" class="auto-next"/>
+  </div>
+
+  <div class="form-group skill-group" data-index="3" style="display:flex;gap:10px;align-items:center;">
+    <input id="techSkillTitle3" placeholder="Title (e.g., Frameworks)" style="flex:1;" class="auto-next"/>
+    <input id="techSkill3" placeholder="Skill (e.g., React, Node.js)" style="flex:1;" class="auto-next"/>
+  </div>
+</div>
+
+
+
+      <div class="column">
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:6px;">
+          <h3 style="margin:0 8px 0 0;">Soft Skill</h3>
+          <button type="button" class="btn small" onclick="addSoftSkillField()">+ Add</button>
+        </div>
+        <div id="soft-skills-container">
+          <div class="form-group skill-group"><label>Skill :</label><input id="softSkill1" class="auto-next" /></div>
+          <div class="form-group skill-group"><label>Skill :</label><input id="softSkill2" class="auto-next" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Education -->
+  <section id="section-education">
+    <h3>Education</h3>
+    <!-- Higher Education container -->
+<div id="higher-education-container">
+  <div class="education-item">
+    <div class="form-group"><label> Degree:</label><input  id="edu-degree" class="auto-next edu-degree"/></div>
+    <div class="form-group"><label>Branch</label><input id="edu-branch" class="auto-next edu-branch" /></div>
+    <div class="form-group"><label>College/University:</label><input id="edu-college" class="auto-next edu-college"/></div>
+    <div class="form-group"><label>CGPA:</label><input id="edu-cgpa" class="auto-next edu-cgpa"/></div>
+    <div class="form-group"><label>Date:</label><input id="edu-date" placeholder="YYYY-YYYY" class="auto-next edu-date"/></div>
+  </div>
+</div>
+
+<div style="display:flex;justify-content:flex-end;margin:6px 0;">
+  <button type="button" class="btn small" onclick="addEducationSection()">+ Add Education</button>
+</div>
+
+    <hr style="margin:8px 0;">
+    <div class="small" style="margin-bottom:8px">XII / HSC (optional)</div>
+    <div class="form-group"><label for="hscSchool">HSC School:</label><input id="hscSchool" class="auto-next"/></div>
+    <div class="form-group"><label for="hscPercentage">HSC %:</label><input id="hscPercentage" class="auto-next" /></div>
+    <div class="form-group"><label for="hscDate">HSC Year:</label><input id="hscDate" class="auto-next" placeholder="20XX" /></div>
+
+    <hr style="margin:8px 0;">
+    <div class="small" style="margin-bottom:8px">X / SSC (optional)</div>
+    <div class="form-group"><label for="sscSchool">SSC School:</label><input id="sscSchool" class="auto-next" /></div>
+    <div class="form-group"><label for="sscPercentage">SSC %:</label><input id="sscPercentage" class="auto-next"/></div>
+    <div class="form-group"><label for="sscDate">SSC Year:</label><input id="sscDate" class="auto-next" placeholder="20XX" /></div>
+  </section>
+
+   <!-- Projects (project details spacing + repo shown as "Repository") -->
+  <section id="section-projects">
+    <h3>Academic Projects</h3>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button type="button" class="btn small" onclick="addProjectSection()">+ Add Project</button>
+    </div>
+    <div id="projects-container">
+      <div class="project-item">
+        <div class="form-group"><label>Project Title:</label><input id="project1Title" class="auto-next" /></div>
+        <div class="form-group"><label>Repo Link:</label><input id="project1Repo" placeholder="https://github.com/username/project" class="auto-next"/></div>
+        <div class="form-group"><label>Details:</label><textarea id="project1Details"></textarea></div>
+      </div>
+    </div>
+  </section>
+  
+   <!-- Experience -->
+  <section id="section-experience">
+    <h3>Experience</h3>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button type="button" class="btn small" onclick="addExperienceSection()">+ Add Experience</button>
+    </div>
+    <div id="experience-container">
+      <div class="experience-item">
+        <div class="form-group"><label>Position:</label><input id="position1" class="auto-next" /></div>
+        <div class="form-group"><label>Company:</label><input id="company1"  class="auto-next"/></div>
+        <div class="form-group"><label>Date:</label><input id="expDate1" placeholder="MM/YYYY - MM/YYYY" class="auto-next"/></div>
+        <div class="form-group"><label>Link:</label><input id="expLink1" placeholder="https://example.com" class="auto-next"/></div>
+        <div class="form-group"><label>Description:</label><textarea id="experience1"></textarea></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Achievements -->
+  <section id="section-achievements">
+    <h3>Achievements</h3>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button type="button" class="btn small" onclick="addAchievementField()">+ Add</button>
+    </div>
+    <div id="achievements-container">
+      <div class="form-group achievement-group"><label>Achievement 1:</label><input id="achievement1"  class="auto-next"/></div>
+      <div class="form-group achievement-group"><label>Achievement 2:</label><input id="achievement2"  class="auto-next"/></div>
+    </div>
+  </section>
+
+  <!-- Custom sections -->
+  <section id="section-custom">
+    <h3>Additional Sections</h3>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button type="button" class="btn small" onclick="addCustomSection()">+ Add Section</button>
+    </div>
+    <div id="custom-sections-container"></div>
+  </section>
+
+  <!-- Form buttons -->
+  <div style="margin-top:6px; display:flex; gap:8px;">
+    <button type="button" class="btn" onclick="showPreview()">Preview</button>
+  </div>
+</form>
+
+<!-- Preview / Print Area -->
+<div id="resumeOutput" class="resume-output" aria-hidden="true">
+  <div class="preview-controls">
+    <div style="flex:1"></div>
+    <div>
+<button class="btn" onclick="printFromPreview()">Download</button>
+<button class="btn secondary" onclick="backToEdit()">Back to Edit</button>
+
+    </div>
+  </div>
+  <div id="resumeRoot" class="resume-root"></div>
+</div>
+
+<script>
+/* ======= State & counters ======== */
+let techSkillCount = 3;
+let softSkillCount = 2;
+let experienceCount = 1;
+let projectCount = 1;
+let achievementCount = 2;
+let customSectionCount = 0;
+
+document.getElementById('resumeForm').addEventListener('submit', e => {
+  e.preventDefault();
+});
+
+
+/* ===== Utilities ===== */
+const $id = id => document.getElementById(id);
+const STORAGE_KEY = 'resume_state_v2';
+const THEME_KEY = 'resume_theme_v2';
+
+
+/* ---------- Profile Photo Handling ---------- */
+const PHOTO_KEY = 'resume_profile_photo';
+
+function handlePhotoUpload(file) {
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const dataUrl = e.target.result;
+    localStorage.setItem(PHOTO_KEY, dataUrl);
+    updatePhotoPreview(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+function updatePhotoPreview(src) {
+  const img = document.getElementById('photoPreview');
+  const placeholder = document.getElementById('photoPlaceholder');
+
+  if (src) {
+    img.src = src;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    placeholder.style.display = 'block';
+  }
+}
+
+
+/* ---------- Shorten URL (github.com/username style) ---------- */
+function shorten(url){
+  if(!url) return '';
+  try {
+    const u = new URL(url);
+    // remove trailing slash
+    let path = u.pathname.replace(/\/$/, '');
+    return u.hostname + (path && path !== '/' ? path : '');
+  } catch(e){
+    // fallback: return cleaned value
+    return url.replace(/^https?:\/\//,'').replace(/\/$/,'');
+  }
+}
+
+/* ---------- Save & Load State ---------- */
+function saveStateToLocal(){
+  const inputs = {};
+  document.querySelectorAll('#resumeForm input, #resumeForm textarea').forEach(el=>{
+    if(el.id) inputs[el.id] = el.value;
+  });
+
+  const state = {
+    inputs,
+    containers: {
+      tech: $id('tech-skills-container')?.innerHTML || '',
+      soft: $id('soft-skills-container')?.innerHTML || '',
+      edu: $id('higher-education-container')?.innerHTML || '',
+      exp: $id('experience-container')?.innerHTML || '',
+      proj: $id('projects-container')?.innerHTML || '',
+      ach: $id('achievements-container')?.innerHTML || '',
+      custom: $id('custom-sections-container')?.innerHTML || ''
+    },
+    counters: {
+      techSkillCount,
+      softSkillCount,
+      experienceCount,
+      projectCount,
+      achievementCount,
+      customSectionCount
+    }
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+
+function loadStateFromLocal(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try {
+    const state = JSON.parse(raw);
+   if(state.containers){
+  $id('tech-skills-container').innerHTML = state.containers.tech || '';
+  $id('soft-skills-container').innerHTML = state.containers.soft || '';
+ if (state.containers?.edu) {
+  const container = $id('higher-education-container');
+
+  // Preserve first education item
+  const firstItem = container.querySelector('.education-item');
+
+  container.innerHTML = state.containers.edu;
+
+  // Restore first block if missing
+  if (!container.querySelector('.education-item') && firstItem) {
+    container.prepend(firstItem);
+  }
+}
+
+  $id('experience-container').innerHTML = state.containers.exp || '';
+  $id('projects-container').innerHTML = state.containers.proj || '';
+  $id('achievements-container').innerHTML = state.containers.ach || '';
+  $id('custom-sections-container').innerHTML = state.containers.custom || '';
+}
+
+    if(state.inputs){
+      Object.keys(state.inputs).forEach(id=>{
+        const el = $id(id);
+        if(el) el.value = state.inputs[id];
+      });
+    }
+
+
+  } catch(e){
+    console.warn('Failed to load resume state', e)
+  
+   if(state.counters){
+  techSkillCount = state.counters.techSkillCount || techSkillCount;
+  softSkillCount = state.counters.softSkillCount || softSkillCount;
+  experienceCount = state.counters.experienceCount || experienceCount;
+  projectCount = state.counters.projectCount || projectCount;
+  achievementCount = state.counters.achievementCount || achievementCount;
+  customSectionCount = state.counters.customSectionCount || customSectionCount;
+}
+  }
+}
+
+/* autosave on input */
+document.addEventListener('input', ()=> {
+  saveStateToLocal();
+});
+
+/* ---------- Dynamic add/remove functions ---------- */
+function addTechSkillField(){
+  techSkillCount++;
+
+  const c = $id('tech-skills-container');
+  const div = document.createElement('div');
+  div.className = 'form-group skill-group';
+  div.dataset.index = techSkillCount;
+
+  div.style.display = "flex";
+  div.style.gap = "10px";
+  div.style.alignItems = "center";
+
+  div.innerHTML = `
+    <input id="techSkillTitle${techSkillCount}" placeholder="Title" style="flex:1;" class="auto-next" />
+    <input id="techSkill${techSkillCount}" placeholder="Skill" style="flex:1;" class="auto-next"/>
+    <button type="button" class="btn small" onclick="this.parentElement.remove(); saveStateToLocal();">Remove</button>
+  `;
+
+  c.appendChild(div);
+  saveStateToLocal();
+}
+
+
+function addSoftSkillField(){
+  softSkillCount++;
+
+  const c = $id('soft-skills-container');
+  const div = document.createElement('div');
+  div.className = 'form-group skill-group';
+
+  /* match existing layout */
+  div.style.display = "flex";
+  div.style.alignItems = "center";
+  div.style.gap = "8px";
+
+  div.innerHTML = `
+    <label style="width:60px; font-weight:600;">Skill :</label>
+    <input 
+      id="softSkill${softSkillCount}" 
+      style="width:220px; padding:4px;" class="auto-next"
+    />
+    <button 
+      type="button" 
+      class="btn small" 
+      onclick="this.parentElement.remove(); saveStateToLocal();">
+      Remove
+    </button>
+  `;
+
+  c.appendChild(div);
+  saveStateToLocal();
+}
+
+
+function addEducationSection(){
+  const c = document.getElementById('higher-education-container');
+  const idx = Date.now(); // unique
+
+  const div = document.createElement('div');
+  div.className = 'education-item';
+
+  div.innerHTML = `
+      <hr style="margin:8px 0;">
+    <div class="form-group"><label>Degree:</label>
+      <input id="edu-degree-${idx}"  class="auto-next edu-degree" />
+    </div>
+    <div class="form-group"><label>Branch:</label>
+      <input id="edu-branch-${idx}"  class="auto-next edu-branch"/>
+    </div>
+    <div class="form-group"><label>College:</label>
+      <input id="edu-college-${idx}"  class="auto-next edu-college"/>
+    </div>
+    <div class="form-group"><label>CGPA:</label>
+      <input id="edu-cgpa-${idx}"  class="auto-next edu-cgpa"/>
+    </div>
+    <div class="form-group"><label>Date:</label>
+      <input id="edu-date-${idx}"  class="auto-next edu-date" />
+    </div>
+    <button type="button" class="btn small"
+      onclick="this.parentElement.remove(); saveStateToLocal();">
+      Remove
+    </button>
+  `;
+
+  c.appendChild(div);
+  saveStateToLocal();
+}
+
+
+
+
+function addExperienceSection(){
+  experienceCount++;
+  const c = $id('experience-container');
+  const div = document.createElement('div'); div.className='experience-item';
+  div.innerHTML = `
+      <hr style="margin:8px 0;"><br>
+    <div class="form-group"><label>Position:</label><input id="position${experienceCount}" class="auto-next" /></div>
+    <div class="form-group"><label>Company:</label><input id="company${experienceCount}" class="auto-next"/></div>
+    <div class="form-group"><label>Date:</label><input id="expDate${experienceCount}" placeholder="MM/YYYY - MM/YYYY" class="auto-next"/></div>
+    <div class="form-group"><label>Link:</label><input id="expLink${experienceCount}" placeholder="https://example.com" class="auto-next"/></div>
+    <div class="form-group"><label>Description:</label><textarea id="experience${experienceCount}"></textarea></div>
+    <button type="button" class="btn small" onclick="this.parentElement.remove(); saveStateToLocal();">Remove Experience</button>`;
+  c.appendChild(div);
+  saveStateToLocal();
+}
+function addProjectSection(){
+  projectCount++;
+  const c = $id('projects-container');
+  const div = document.createElement('div'); div.className='project-item';
+  div.innerHTML = `
+     <hr style="margin:8px 0;"><br>
+    <div class="form-group"><label>Project Title:</label><input id="project${projectCount}Title" class="auto-next"/></div>
+    <div class="form-group"><label>Repo Link:</label><input id="project${projectCount}Repo" placeholder="https://github.com/username/project"class="auto-next" /></div>
+    <div class="form-group"><label>Details:</label><textarea id="project${projectCount}Details"></textarea></div>
+    <button type="button" class="btn small" onclick="this.parentElement.remove(); saveStateToLocal();">Remove Project</button>`;
+  c.appendChild(div);
+  saveStateToLocal();
+}
+function addAchievementField(){
+  achievementCount++;
+  const c = $id('achievements-container');
+  const div = document.createElement('div'); div.className='form-group achievement-group';
+  div.innerHTML = `<label>Achievement ${achievementCount}:</label><input id="achievement${achievementCount}" class="auto-next" />
+    <button type="button" class="btn small" onclick="this.parentElement.remove(); saveStateToLocal();">Remove</button>`;
+  c.appendChild(div);
+  saveStateToLocal();
+}
+function addCustomSection(){
+  customSectionCount++;
+  const id = 'custom' + Date.now();
+  const c = $id('custom-sections-container');
+  const div = document.createElement('div');
+  div.className = 'custom-section';
+  div.id = id;
+
+  div.innerHTML = `
+    <div class="form-group">
+      <label>Section Title:</label>
+      <input id="${id}-title" placeholder="e.g., Certifications" class="auto-next" />
+    </div>
+
+    <div class="form-group">
+      <label>Subtitle:</label>
+      <input id="${id}-subtitle" placeholder="e.g., Professional Certificates" class="auto-next"/>
+    </div>
+
+    <div class="form-group">
+      <label>Content:</label>
+      <textarea id="${id}-content" placeholder="Enter each point on a new line"></textarea>
+    </div>
+
+    <button type="button" class="btn small" 
+      onclick="document.getElementById('${id}').remove(); saveStateToLocal();">
+      Remove Section
+    </button>
+  `;
+  
+  c.appendChild(div);
+  saveStateToLocal();
+}
+
+
+
+/* ---------- Remove Position of Responsibility: already removed from DOM & logic ---------- */
+
+/* ---------- Build Resume HTML (two-column preview/print only) ---------- */
+function buildResumeHTML() {
+
+  /* ========= LAYOUT START ========= */
+  let html = `
+  <div class="resume-root">
+    <div class="resume-split">
+      <div class="resume-left">
+`;
+
+  /* ========= LEFT COLUMN ========= */
+
+  /* Profile Photo */
+  const photo = localStorage.getItem(PHOTO_KEY) || '';
+  if (photo) {
+    html += `
+      <div class="section">
+        <div class="resume-photo">
+          <img src="${photo}" alt="Profile Photo">
+        </div>
+      </div>
+    `;
+  }
+
+
+  /* Skills */
+  const techGroups = Array.from(
+    document.querySelectorAll('#tech-skills-container .skill-group')
+  );
+  const softSkills = Array.from(
+    document.querySelectorAll('#soft-skills-container input')
+  ).map(i => i.value.trim()).filter(Boolean);
+
+  if (techGroups.length || softSkills.length) {
+    html += `<div class="section"><h3>SKILLS</h3>`;
+
+    if (techGroups.length) {
+      html += `<ul>`;
+      techGroups.forEach(group => {
+        const title = group.querySelector("input[id^='techSkillTitle']")?.value.trim();
+        const value = group.querySelector("input[id^='techSkill']:not([id^='techSkillTitle'])")?.value.trim();
+        if (title || value) {
+          html += `<li><strong>${escapeHtml(title || value)}</strong>${title && value ? ': ' + escapeHtml(value) : ''}</li>`;
+        }
+      });
+      html += `</ul>`;
+    }
+
+    if (softSkills.length) {
+      html += `<ul>${softSkills.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>`;
+    }
+
+    html += `</div>`;
+  }
+
+  
+//Education 
+  const eduItems = Array.from(
+  document.querySelectorAll('#higher-education-container .education-item')
+);
+
+  const degree = $id('degree')?.value.trim() || '';
+  const branch = $id('branch')?.value.trim() || '';
+  const college = $id('college')?.value.trim() || '';
+  const cgpa = $id('cgpa')?.value.trim() || '';
+  const collegeDate = $id('collegeDate')?.value.trim() || '';
+  const hscSchool = $id('hscSchool')?.value.trim() || '';
+  const hscPercentage = $id('hscPercentage')?.value.trim() || '';
+  const hscDate = $id('hscDate')?.value.trim() || '';
+  const sscSchool = $id('sscSchool')?.value.trim() || '';
+  const sscPercentage = $id('sscPercentage')?.value.trim() || '';
+  const sscDate = $id('sscDate')?.value.trim() || '';
+
+if (eduItems.length || hscSchool || sscSchool) {
+  html += `<div class="section"><h3>EDUCATION</h3><ul>`;
+
+  eduItems.forEach(item => {
+    const degree = item.querySelector('.edu-degree')?.value.trim() || '';
+    const branch = item.querySelector('.edu-branch')?.value.trim() || '';
+    const college = item.querySelector('.edu-college')?.value.trim() || '';
+    const cgpa = item.querySelector('.edu-cgpa')?.value.trim() || '';
+    const date = item.querySelector('.edu-date')?.value.trim() || '';
+    
+   if (college || degree || branch) {
+
+      html += `
+        <li>
+          <div class="edu-row">
+        <div class="edu-text">
+  ${college ? `<div class="edu-school">${escapeHtml(college)}</div>` : ''}
+  <div class="edu-line">
+    ${escapeHtml(degree)}
+    ${branch ? ' - ' + escapeHtml(branch) : ''}
+    ${cgpa ? ' | CGPA: ' + escapeHtml(cgpa) : ''}
+  </div>
+</div>
+
+
+            <span class="edu-strong">${escapeHtml(date)}</span>
+          </div>
+        </li>`;
+    }
+  });
+
+  /* HSC */
+  if (hscSchool || hscPercentage || hscDate) {
+    html += `
+      <li>
+        <div class="edu-row">
+         <span>
+  <div class="edu-school">${escapeHtml(hscSchool)}</div>
+  <div class="edu-line">
+    XII
+    ${hscPercentage ? ' | Percent: ' + escapeHtml(hscPercentage) + '%' : ''}
+  </div>
+</span>
+
+          <span class="edu-strong">${escapeHtml(hscDate)}</span>
+        </div>
+      </li>`;
+  }
+
+  /* SSC */
+  if (sscSchool || sscPercentage || sscDate) {
+    html += `
+      <li>
+        <div class="edu-row">
+        <span>
+  <div class="edu-school">${escapeHtml(sscSchool)}</div>
+  <div class="edu-line">
+    X
+    ${sscPercentage ? ' | Percent: ' + escapeHtml(sscPercentage) + '%' : ''}
+  </div>
+</span>
+
+          <span class="edu-strong">${escapeHtml(sscDate)}</span>
+        </div>
+      </li>`;
+  }
+
+  html += `</ul></div>`;
+}
+  //Contact Info 
+  const email = $id('email')?.value.trim();
+  const mobile = $id('mobile')?.value.trim();
+  const github = $id('github')?.value.trim();
+  const linkedin = $id('linkedin')?.value.trim();
+
+ html += `
+  <div class="section">
+    <h3>CONTACT</h3>
+    <div class="contact-vertical">
+
+      ${mobile ? `<div>${escapeHtml(mobile)}</div>` : ''}
+
+      ${email ? `
+        <div>
+          <a href="mailto:${email}">
+            ${escapeHtml(email)}
+          </a>
+        </div>` : ''}
+
+
+      ${linkedin ? `
+        <div>
+          <a class="profile-link" href="${linkedin}" target="_blank" rel="noopener noreferrer">
+            ${linkedinIconSvg()}
+            <span>${shorten(linkedin)}</span>
+          </a>
+        </div>` : ''}
+
+      ${github ? `
+        <div>
+          <a class="profile-link" href="${github}" target="_blank" rel="noopener noreferrer">
+            ${githubIconSvg()}
+            <span>${shorten(github)}</span>
+          </a>
+        </div>` : ''}
+
+    </div>
+  </div>
+`;
+
+
+
+  /* ========= SWITCH TO RIGHT COLUMN ========= */
+  html += `
+      </div>
+      <div class="resume-right">
+  `;
+
+  /* ========= RIGHT COLUMN ========= */
+
+  /* Personal Info */
+  const fullName = $id('fullName')?.value.trim();
+  html += `
+    <div class="section">
+      <h1>${escapeHtml(fullName || '')}</h1>
+    </div>
+  `;
+  
+
+ /* Career Objective */
+  const career = $id('careerObjective')?.value.trim();
+  if (career) {
+    html += `<div class="section"><h3>CAREER OBJECTIVE</h3>${escapeHtml(career)}</div>`;
+  }
+
+   /* Projects */
+  const projects = Array.from(document.querySelectorAll('#projects-container .project-item'));
+  if (projects.length) {
+    html += `<div class="section"><h3>PROJECTS</h3>`;
+    projects.forEach((p, i) => {
+      const title = p.querySelector("input[id$='Title']")?.value.trim();
+      const repo = p.querySelector("input[id$='Repo']")?.value.trim();
+      const details = p.querySelector("textarea")?.value.trim();
+      if (title) {
+        html += `<strong>${i + 1}. ${escapeHtml(title)}</strong>`;
+        if (repo) html += ` — <a href="${repo}">${shorten(repo)}</a>`;
+        if (details) html += `<ul>${details.split('\n').map(d => `<li>${escapeHtml(d)}</li>`).join('')}</ul>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  // Experience
+  const expItems = Array.from($id('experience-container').querySelectorAll('.experience-item')).map(item=>{
+    const pos = item.querySelector("input[id^='position']")?.value.trim() || '';
+    const comp = item.querySelector("input[id^='company']")?.value.trim() || '';
+    const date = item.querySelector("input[id^='expDate']")?.value.trim() || '';
+    const link = item.querySelector("input[id^='expLink']")?.value.trim() || '';
+    const desc = item.querySelector("textarea[id^='experience']")?.value.trim() || '';
+
+    if (!(pos || comp || desc || link)) return null;
+
+    const descHtml = desc
+      ? ('<ul>' + desc.split('\n').filter(l=>l.trim()).map(l=>`<li>${escapeHtml(l)}</li>`).join('') + '</ul>')
+      : '';
+
+    return `
+      <div class="experience-item">
+        <div class="exp-row">
+          <div class="exp-left">
+            <strong>${escapeHtml(pos)}</strong>
+            ${comp ? '|   ' + escapeHtml(comp) : ''}
+            ${link ? `— <a href="${link}" target="_blank" rel="noopener noreferrer" style="color:#0066cc;">${shorten(link)}</a>` : ''}
+          </div>
+          <span class="exp-date">${escapeHtml(date)}</span>
+        </div>
+        ${descHtml}
+      </div>`;
+}).filter(Boolean);
+
+if (expItems.length) html += `<div class="section"><h3>EXPERIENCE</h3>${expItems.join('')}</div>`;
+
+    /* Achievements */
+  const achievements = Array.from(
+    document.querySelectorAll('#achievements-container input')
+  ).map(i => i.value.trim()).filter(Boolean);
+
+  if (achievements.length) {
+    html += `
+      <div class="section">
+        <h3>ACHIEVEMENTS</h3>
+        <ul>${achievements.map(a => `<li>${escapeHtml(a)}</li>`).join('')}</ul>
+      </div>
+    `;
+  }
+
+  //Custom Section
+ const customSections = Array.from(
+  document.querySelectorAll('#custom-sections-container .custom-section')
+);
+
+if (customSections.length) {
+  customSections.forEach(sec => {
+    const title = sec.querySelector("input[id$='title']")?.value.trim();
+    const content = sec.querySelector("textarea")?.value.trim();
+    if (!title || !content) return;
+
+    html += `
+      <div class="section">
+        <h3>${escapeHtml(title)}</h3>
+        <ul>
+          ${content
+            .split('\n')
+            .filter(l => l.trim())
+            .map(l => `<li>${escapeHtml(l)}</li>`)
+            .join('')}
+        </ul>
+      </div>
+    `;
+  });
+}
+
+
+
+  /* ========= CLOSE LAYOUT ========= */
+  html += `
+      </div>
+    </div>
+    </div>
+  `;
+
+  return html;
+}
+
+
+
+/* ---------- Show Preview (does NOT print) ---------- */
+function showPreview(){
+  const html = buildResumeHTML();
+  $id('resumeRoot').innerHTML = html;
+  $id('resumeOutput').style.display = 'block';
+  $id('resumeForm').style.display = 'none';
+
+  requestAnimationFrame(autoBalanceColumns);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+
+/* ---------- Back to Edit (return without affecting print) ---------- */
+function backToEdit(){
+  $id('resumeOutput').style.display = 'none';
+  $id('resumeForm').style.display = 'block';
+}
+
+/* ---------- Print from preview (trigger print) ---------- */
+function printFromPreview() {
+
+  requestAnimationFrame(autoBalanceColumns);
+
+  // Update preview content
+  $id('resumeRoot').innerHTML = buildResumeHTML();
+
+  // Inject print helper style
+  const style = document.createElement('style');
+  style.id = 'print-helper-style';
+  style.textContent = `
+    @media print {
+      body { margin:0; padding:0; }
+      #resumeForm, .preview-controls { display:none !important; }
+      #resumeOutput { display:block !important; }
+      a::after { content: "" !important; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  requestAnimationFrame(() => {
+    applyCompactIfOverflow();
+    setTimeout(() => {
+      window.print();
+
+      const st = document.getElementById('print-helper-style');
+      if (st) st.remove();
+    }, 150);
+  });
+}
+
+
+
+/* ---------- Theme toggle (affects headings + bullets) ---------- */
+function setTheme(theme){
+  const root = document.documentElement.style;
+
+  switch (theme) {
+    case 'blue':
+      root.setProperty('--accent-color', '#004AAD');
+      break;
+
+    case 'teal':
+      root.setProperty('--accent-color', '#00A3A3');
+      break;
+
+    default: // original
+      root.setProperty('--accent-color', '#000');
+  }
+
+  localStorage.setItem(THEME_KEY, theme);
+
+  // Button label (optional but recommended)
+  const labelMap = {
+    original: 'Theme: Black',
+    blue: 'Theme: Blue',
+    teal: 'Theme: Teal'
+  };
+  $id('themeToggle').textContent = labelMap[theme];
+}
+
+function toggleTheme(){
+  const order = ['original', 'blue', 'teal'];
+  const current = localStorage.getItem(THEME_KEY) || 'original';
+
+  const next = order[(order.indexOf(current) + 1) % order.length];
+  setTheme(next);
+}
+
+const FORMAT_KEY = 'resume_heading_format';
+
+function setFormat(format) {
+  const body = document.body;
+
+  if (format === 'centre') {
+    body.classList.add('left-format');
+  } else {
+    body.classList.remove('left-format');
+  }
+
+  localStorage.setItem(FORMAT_KEY, format);
+
+  $id('formatToggle').textContent =
+    format === 'centre' ? 'Format: centre' : 'Format: left';
+}
+
+function toggleFormat() {
+  const current = localStorage.getItem(FORMAT_KEY) || 'left';
+  setFormat(current === 'left' ? 'centre' : 'left');
+}
+
+
+
+/* ---------- Short helpers ---------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------- Icons as inline SVG strings ---------- */
+function githubIconSvg(){
+  return `<svg viewBox="0 0 24 24" width="16" height="16" style="fill:#000 !important;">
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.6.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.562 21.8 24 17.302 24 12 24 5.373 18.627 0 12 0z"/>
+  </svg>`;
+}
+
+function linkedinIconSvg(){
+  return `<svg viewBox="0 0 24 24" width="16" height="16" style="fill:#0A66C2 !important;">
+    <path d="M19 0h-14C2.239 0 0 2.239 0 5v14c0 
+    2.762 2.239 5 5 5h14c2.762 0 
+    5-2.238 5-5V5c0-2.761-2.238-5-5-5zM7 
+    19H4V8h3v11zM5.5 6.232C4.534 6.232 
+    3.75 5.443 3.75 4.468 3.75 3.494 
+    4.534 2.705 5.5 2.705s1.75.79 
+    1.75 1.763c0 .975-.784 1.764-1.75 
+    1.764zM20 19h-3v-5.6c0-3.368-4-3.113-4 
+    0V19h-3V8h3v1.765C16.396 7.18 23 
+    6.999 23 11.242V19h-3z"/>
+  </svg>`;
+}
+
+function applyCompactIfOverflow() {
+  const pageHeight = 1120; // A4 px approx
+  const resumeHeight = document.getElementById('resumeRoot').offsetHeight;
+
+  if (resumeHeight % pageHeight > pageHeight * 0.6) {
+    document.body.classList.add('compact');
+  }
+}
+
+
+
+/* ---------- Init & wiring ---------- */
+function init(){
+
+// Load saved profile photo
+const savedPhoto = localStorage.getItem(PHOTO_KEY);
+if (savedPhoto) updatePhotoPreview(savedPhoto);
+
+// Photo upload listener
+const photoInput = document.getElementById('profilePhoto');
+if (photoInput) {
+  photoInput.addEventListener('change', function () {
+    handlePhotoUpload(this.files[0]);
+  });
+}
+
+
+  // load saved content
+  loadStateFromLocal();
+
+  // load theme
+  const theme = localStorage.getItem(THEME_KEY) || 'original';
+  setTheme(theme);
+
+ const themeBtn = $id('themeToggle');
+if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+const formatBtn = $id('formatToggle');
+if (formatBtn) formatBtn.addEventListener('click', toggleFormat);
+
+
+const savedFormat = localStorage.getItem(FORMAT_KEY) || 'left';
+setFormat(savedFormat);
+
+  // MutationObserver to autosave added dynamic nodes
+ const obs = new MutationObserver(() => saveStateToLocal());
+
+[
+  'tech-skills-container',
+  'soft-skills-container',
+  'higher-education-container',
+  'experience-container',
+  'projects-container',
+  'achievements-container',
+  'custom-sections-container'
+].forEach(id=>{
+  const el = $id(id);
+  if(el) obs.observe(el, { childList:true, subtree:true });
+});
+
+  // autosave interval
+  setInterval(saveStateToLocal, 4000);
+}
+document.addEventListener('DOMContentLoaded', init);
+
+/* ---------- Reset form (clear local storage and reload) ---------- */
+function resetForm(){
+  if(!confirm('Reset form and clear saved data?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(PHOTO_KEY);
+  location.reload();
+}
+
+
+//Auto next line 
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter') return;
+
+  const el = e.target;
+
+  // Only for inputs marked auto-next
+  if (!el.classList.contains('auto-next')) return;
+
+  // Allow Enter inside textarea
+  if (el.tagName === 'TEXTAREA') return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  moveToNextInput(el);
+}, true); // 👈 CAPTURE PHASE (critical)
+
+function moveToNextInput(current) {
+  const inputs = Array.from(
+    document.querySelectorAll('.auto-next')
+  ).filter(el =>
+    !el.disabled &&
+     el.offsetParent !== null &&
+    el.tagName !== 'TEXTAREA'
+  );
+
+  const index = inputs.indexOf(current);
+
+  for (let i = index + 1; i < inputs.length; i++) {
+    if (inputs[i]) {
+      inputs[i].focus();
+      inputs[i].scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+      break;
+    }
+  }
+}
+
+function autoBalanceColumns() {
+  const left = document.querySelector('.resume-left');
+  const right = document.querySelector('.resume-right');
+  if (!left || !right) return;
+
+  const leftHeight = left.offsetHeight;
+  const rightHeight = right.offsetHeight;
+
+  if (rightHeight > leftHeight + 120) {
+    const movable = right.querySelectorAll('.section');
+
+    for (let i = movable.length - 1; i >= 0; i--) {
+      left.appendChild(movable[i]);
+
+      if (left.offsetHeight >= right.offsetHeight - 80) {
+        break;
+      }
+    }
+  }
+}
+
+
+
+</script>
+</body>
+</html>
