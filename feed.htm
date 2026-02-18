@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiHire - Feedback</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .feedback-container {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 15px;
+        width: 400px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+
+    h2 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .stars {
+        margin: 20px 0;
+    }
+
+    .star {
+        font-size: 35px;
+        cursor: pointer;
+        color: #ccc;
+        transition: color 0.2s;
+    }
+
+    .star.selected {
+        color: #facc15;
+    }
+
+    textarea {
+        width: 100%;
+        height: 80px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        resize: none;
+        margin-bottom: 15px;
+    }
+
+    button {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background: #4338ca;
+    }
+
+    .thank-you {
+        margin-top: 20px;
+        font-weight: bold;
+        color: green;
+        font-size: 26px; /* Larger font */
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="feedback-container">
+
+    <h2>OptiHire Feedback</h2>
+    <p>Rate your experience with OptiHire</p>
+
+    <div class="stars" id="starRating">
+        <span class="star" data-value="1">&#9733;</span>
+        <span class="star" data-value="2">&#9733;</span>
+        <span class="star" data-value="3">&#9733;</span>
+        <span class="star" data-value="4">&#9733;</span>
+        <span class="star" data-value="5">&#9733;</span>
+    </div>
+
+    <!-- Feedback Form -->
+    <div id="feedbackForm">
+        <textarea placeholder="Write your feedback here..."></textarea>
+        <br>
+        <button onclick="submitFeedback()">Submit Feedback</button>
+    </div>
+
+    <!-- Thank You Message -->
+    <div class="thank-you" id="thankYouMsg">
+        Thank you for your feedback!
+    </div>
+
+</div>
+
+<script>
+
+    const stars = document.querySelectorAll(".star");
+    let selectedRating = 0;
+
+    stars.forEach(star => {
+        star.addEventListener("click", function () {
+            selectedRating = this.getAttribute("data-value");
+
+            stars.forEach(s => s.classList.remove("selected"));
+
+            for (let i = 0; i < selectedRating; i++) {
+                stars[i].classList.add("selected");
+            }
+        });
+    });
+
+    function submitFeedback() {
+
+        if (selectedRating == 0) {
+            alert("Please select a rating");
+            return;
+        }
+
+        // Hide form
+        document.getElementById("feedbackForm").style.display = "none";
+
+        // Show thank you message
+        document.getElementById("thankYouMsg").style.display = "block";
+    }
+
+</script>
+
+</body>
+</html>
