@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explore Candidates</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top left, #e8f0ff, #f6f7ff, #eef6ff);
+      min-height: 100vh;
+      padding: 40px 15px;
+      overflow-x: hidden;
+      animation: pageFade 0.7s ease;
+    }
+
+    @keyframes pageFade {
+      from { opacity: 0; transform: translateY(15px); }
+      to   { opacity: 1; transform: translateY(0px); }
+    }
+
+    .container {
+      max-width: 1050px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(14px);
+      padding: 28px;
+      border-radius: 22px;
+      box-shadow: 0 18px 55px rgba(0, 0, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before,
+    .container::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.35;
+      z-index: -1;
+    }
+
+    .container::before {
+      background: #2b6cff;
+      top: -70px;
+      left: -70px;
+    }
+
+    .container::after {
+      background: #8b5cff;
+      bottom: -70px;
+      right: -70px;
+    }
+
+    h1 {
+      font-size: 32px;
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #2b6cff, #7b5cff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 22px;
+    }
+
+    .search-area {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(43, 108, 255, 0.15);
+      box-shadow: 0 10px 28px rgba(43, 108, 255, 0.10);
+      transition: 0.3s ease;
+    }
+
+    .search-area:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 35px rgba(43, 108, 255, 0.14);
+    }
+
+    label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1d2b4a;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .dropdowns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    select {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.10);
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.9);
+      outline: none;
+      transition: 0.25s ease;
+      cursor: pointer;
+    }
+
+    select:hover {
+      border-color: rgba(43, 108, 255, 0.55);
+      transform: translateY(-1px);
+    }
+
+    select:focus {
+      border-color: #2b6cff;
+      box-shadow: 0 0 0 4px rgba(43, 108, 255, 0.18);
+    }
+
+    .buttons {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: 0.25s ease;
+      font-size: 15px;
+      letter-spacing: 0.3px;
+    }
+
+    .search-btn {
+      flex: 1;
+      background: linear-gradient(90deg, #2b6cff, #7b5cff);
+      color: white;
+      box-shadow: 0 12px 24px rgba(43, 108, 255, 0.20);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .search-btn::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 60%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      transform: skewX(-20deg);
+      transition: 0.5s ease;
+    }
+
+    .search-btn:hover::after {
+      left: 140%;
+    }
+
+    .search-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 32px rgba(43, 108, 255, 0.28);
+    }
+
+    .clear-btn {
+      background: rgba(0, 0, 0, 0.06);
+      color: #111;
+    }
+
+    .clear-btn:hover {
+      transform: translateY(-2px);
+      background: rgba(0, 0, 0, 0.10);
+    }
+
+    .results {
+      margin-top: 25px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.05);
+    }
+
+    .results h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #1d2b4a;
+    }
+
+    .applicant {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,0.08);
+      margin-top: 12px;
+      background: rgba(255,255,255,0.85);
+      opacity: 0;
+      transform: translateY(15px);
+      animation: fadeUp 0.45s ease forwards;
+      transition: 0.25s ease;
+    }
+
+    .applicant:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 30px rgba(0,0,0,0.08);
+      border-color: rgba(43,108,255,0.25);
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .candidate-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .candidate-name {
+      font-size: 17px;
+      font-weight: 900;
+      color: #0f1f3a;
+    }
+
+    .candidate-id {
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2b6cff, #7b5cff);
+      color: white;
+      box-shadow: 0 8px 18px rgba(43,108,255,0.22);
+      white-space: nowrap;
+    }
+
+    .tags {
+      margin-top: 10px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 8px;
+      margin-right: 7px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(43,108,255,0.08);
+      border: 1px solid rgba(43,108,255,0.18);
+      transition: 0.2s ease;
+    }
+
+    .tag:hover {
+      transform: scale(1.06);
+      background: rgba(43,108,255,0.14);
+    }
+
+    .info {
+      margin-top: 10px;
+      font-size: 13px;
+      color: rgba(0,0,0,0.55);
+      font-weight: 600;
+    }
+
+    .no-results {
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 0, 0, 0.08);
+      border: 1px solid rgba(255, 0, 0, 0.20);
+      color: #b00020;
+      font-weight: 800;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.35s ease forwards;
+    }
+
+    @media (max-width: 750px) {
+      .dropdowns { grid-template-columns: 1fr; }
+      .buttons { flex-direction: column; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Explore Candidates</h1>
+
+    <div class="search-area">
+      <label>Select up to 3 skills (No duplicates allowed):</label>
+
+      <div class="dropdowns">
+        <select id="skill1"></select>
+        <select id="skill2"></select>
+        <select id="skill3"></select>
+      </div>
+
+      <div class="buttons">
+        <button class="search-btn" onclick="searchApplicants()">Search Candidates</button>
+        <button class="clear-btn" onclick="clearSelection()">Clear</button>
+      </div>
+    </div>
+
+    <div class="results">
+      <h2 id="resultTitle">All Candidates</h2>
+      <div id="resultsBox"></div>
+    </div>
+  </div>
+
+  <script>
+    // Skills list
+    const allSkills = [
+      "Java", "Python", "C", "C++", "C#", "JavaScript", "TypeScript",
+      "HTML", "CSS", "React", "Angular", "Vue", "Node.js",
+      "PHP", "Ruby", "Go", "Rust", "Swift", "Kotlin",
+      "SQL", "MongoDB", "Firebase", "Django", "Flask",
+      "Spring", "Bootstrap", "Tailwind", "Git", "Docker",
+      "Laravel", "MySQL", "Kubernetes"
+    ];
+
+    // Always show these 10 candidates
+    const applicants = [
+      { id: "U1001", name: "Aman Sharma", skills: ["Java", "Spring", "SQL"] },
+      { id: "U1002", name: "Riya Verma", skills: ["HTML", "CSS", "JavaScript"] },
+      { id: "U1003", name: "Kunal Singh", skills: ["Python", "Django", "SQL"] },
+      { id: "U1004", name: "Sneha Patil", skills: ["React", "JavaScript", "Node.js"] },
+      { id: "U1005", name: "Aditya Mehta", skills: ["C++", "Git", "Docker"] },
+      { id: "U1006", name: "Neha Kapoor", skills: ["Java", "HTML", "CSS"] },
+      { id: "U1007", name: "Rahul Das", skills: ["Python", "Flask", "MongoDB"] },
+      { id: "U1008", name: "Simran Kaur", skills: ["TypeScript", "Angular", "SQL"] },
+      { id: "U1009", name: "Vikram Joshi", skills: ["PHP", "Laravel", "MySQL"] },
+      { id: "U1010", name: "Pooja Nair", skills: ["Go", "Docker", "Kubernetes"] }
+    ];
+
+    const dropdownIds = ["skill1", "skill2", "skill3"];
+    const resultsBox = document.getElementById("resultsBox");
+    const resultTitle = document.getElementById("resultTitle");
+
+    // Create dropdown with placeholder + skills
+    function buildDropdownOptions(selectedValue = "") {
+      const frag = document.createDocumentFragment();
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "-- Select Skill --";
+      frag.appendChild(placeholder);
+
+      allSkills.forEach(skill => {
+        const option = document.createElement("option");
+        option.value = skill;
+        option.textContent = skill;
+        if (skill === selectedValue) option.selected = true;
+        frag.appendChild(option);
+      });
+
+      return frag;
+    }
+
+    // Fill all dropdowns initially
+    function initDropdowns() {
+      dropdownIds.forEach(id => {
+        const select = document.getElementById(id);
+        select.innerHTML = "";
+        select.appendChild(buildDropdownOptions(""));
+      });
+
+      dropdownIds.forEach(id => {
+        document.getElementById(id).addEventListener("change", updateDropdownLocks);
+      });
+
+      updateDropdownLocks();
+    }
+
+    // Prevent duplicates across dropdowns
+    function updateDropdownLocks() {
+      const values = dropdownIds.map(id => document.getElementById(id).value);
+
+      dropdownIds.forEach((id, index) => {
+        const select = document.getElementById(id);
+        const myValue = values[index];
+
+        [...select.options].forEach(option => {
+          if (option.value === "") return;
+
+          // disable option if it's selected in another dropdown
+          const selectedSomewhereElse =
+            values.includes(option.value) && option.value !== myValue;
+
+          option.disabled = selectedSomewhereElse;
+        });
+      });
+    }
+
+    // Display candidates
+    function renderCandidates(list, titleText) {
+      resultsBox.innerHTML = "";
+      resultTitle.textContent = titleText;
+
+      list.forEach((applicant, index) => {
+        const div = document.createElement("div");
+        div.className = "applicant";
+        div.style.animationDelay = `${index * 0.08}s`;
+
+        div.innerHTML = `
+          <div class="candidate-top">
+            <div class="candidate-name">${applicant.name}</div>
+            <div class="candidate-id">${applicant.id}</div>
+          </div>
+
+          <div class="tags">
+            ${applicant.skills.map(skill => `<span class="tag">${skill}</span>`).join("")}
+          </div>
+
+          <div class="info">Expertise: ${applicant.skills.join(" • ")}</div>
+        `;
+
+        resultsBox.appendChild(div);
+      });
+    }
+
+    // Search candidates based on selected skills
+    function searchApplicants() {
+      const s1 = document.getElementById("skill1").value;
+      const s2 = document.getElementById("skill2").value;
+      const s3 = document.getElementById("skill3").value;
+
+      let selectedSkills = [s1, s2, s3].filter(s => s !== "");
+
+      if (selectedSkills.length === 0) {
+        renderCandidates(applicants, "All Candidates (No filter applied)");
+        return;
+      }
+
+      const matches = applicants.filter(applicant =>
+        selectedSkills.every(skill => applicant.skills.includes(skill))
+      );
+
+      if (matches.length === 0) {
+        resultsBox.innerHTML = `<div class="no-results">No candidates found with these skills.</div>`;
+        resultTitle.textContent = "Search Result";
+        return;
+      }
+
+      renderCandidates(matches, "Search Result");
+    }
+
+    function clearSelection() {
+      dropdownIds.forEach(id => document.getElementById(id).value = "");
+      updateDropdownLocks();
+      renderCandidates(applicants, "All Candidates");
+    }
+
+    // Load page
+    initDropdowns();
+    renderCandidates(applicants, "All Candidates");
+  </script>
+</body>
+</html>
