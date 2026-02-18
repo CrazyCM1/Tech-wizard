@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptHire - Connecting Talent with Opportunities</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Header and Navigation */
+        .header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: transparent;   /* Removed white */
+    backdrop-filter: none;     /* Removed blur */
+    z-index: 1000;
+    padding: 1rem 2rem;
+    box-shadow: none;          /* Removed shadow */
+    animation: slideDown 0.8s ease-out;
+}
+
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 10px;
+            z-index: 1001;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #333;
+            margin: 3px 0;
+            transition: 0.3s ease;
+            transform-origin: center;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 999;
+            padding: 80px 30px 30px;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin: 20px 0;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.active .sidebar-nav li {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sidebar-nav li:nth-child(1) { transition-delay: 0.1s; }
+        .sidebar-nav li:nth-child(2) { transition-delay: 0.2s; }
+        .sidebar-nav li:nth-child(3) { transition-delay: 0.3s; }
+        .sidebar-nav li:nth-child(4) { transition-delay: 0.4s; }
+
+        .sidebar-nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            display: block;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav a:hover {
+            padding-left: 20px;
+            color: #fbbf24;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            margin: 2rem auto;
+            animation: fadeInUp 1s ease-out 0.8s both;
+        }
+
+        .carousel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .carousel-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s ease-in-out;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .slide-content i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #fbbf24;
+        }
+
+        .slide-content h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide-content p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: #fbbf24;
+            transform: scale(1.2);
+        }
+
+        /* Jobs Section */
+        .jobs-section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: #2563eb;
+            margin-bottom: 1rem;
+        }
+
+        .search-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 200px 200px 150px;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .search-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .job-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .job-card:nth-child(1) { animation-delay: 0.1s; }
+        .job-card:nth-child(2) { animation-delay: 0.2s; }
+        .job-card:nth-child(3) { animation-delay: 0.3s; }
+        .job-card:nth-child(4) { animation-delay: 0.4s; }
+        .job-card:nth-child(5) { animation-delay: 0.5s; }
+        .job-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .company-name {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .job-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .job-description {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .apply-btn {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .apply-btn:hover {
+            background: #047857;
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .carousel-container {
+                height: 250px;
+                max-width: 90%;
+            }
+
+            .slide-content i {
+                font-size: 3rem;
+            }
+
+            .slide-content h3 {
+                font-size: 1.5rem;
+            }
+        }
+       body {
+    transition: background 0.4s ease, color 0.4s ease;
+}
+.search-container,
+.job-card {
+    background: #ffffff;
+}
+
+body.dark-mode {
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+body.dark-mode .header {
+    background: #0f172a;
+}
+
+body.dark-mode .hero {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+body.dark-mode .search-container,
+body.dark-mode .job-card {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+body.dark-mode .section-header h2 {
+    color: #60a5fa;
+}
+
+body.dark-mode .job-meta {
+    color: #cbd5e1;
+}
+
+body.dark-mode .theme-toggle {
+    background: rgba(255,255,255,0.1);
+    color: #ffffff;
+}
+
+
+body {
+    background: #ffffff;
+    color: #333;
+}
+
+.theme-toggle {
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-right: 20px;
+    padding: 8px 10px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.05);
+    transition: 0.3s ease;
+}
+.logo-img {
+    height: 80px;
+    width: auto;
+    border-radius: 360px;
+}
+
+
+.theme-toggle:hover {
+    transform: rotate(20deg);
+}
+
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+   <div class="logo">
+    <img src="logo.png" alt="OptHire Logo" class="logo-img">
+</div>
+
+
+    <div style="display:flex; align-items:center;">
+        <div class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon"></i>
+        </div>
+
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</div>
+
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <ul class="sidebar-nav">
+            <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="#"><i class="fas fa-person"></i> Candidate</a></li>
+             <li><a href="#resume"><i class="fas fa-file-alt"></i> Create Resume</a></li>
+              <li><a href="#resume"><i class="fas fa-file-alt"></i>Profile </a></li>
+            <li><a href="#"><i class="fas fa-person"></i> Recruiter</a></li>
+            <li><a href="#"><i class="fas fa-envelope"></i> Feedback</a></li>
+        </ul>
+    </nav>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>OptHire</h1>
+            <p>Connecting Talent with Opportunities - Your Dream Job Awaits</p>
+        </div>
+        
+        <div class="carousel-container">
+            <div class="carousel">
+                <div class="carousel-slide active">
+                    <div class="slide-content">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Create Resume</h3>
+                        <p>Build a professional resume that stands out from the crowd</p>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <i class="fas fa-search"></i>
+                        <h3>Find Jobs</h3>
+                        <p>Discover thousands of job opportunities tailored to your skills</p>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <i class="fas fa-handshake"></i>
+                        <h3>Get Hired</h3>
+                        <p>Connect with top employers and land your dream job</p>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Grow Career</h3>
+                        <p>Advance your career with expert guidance and resources</p>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-dots">
+                <span class="dot active" data-slide="0"></span>
+                <span class="dot" data-slide="1"></span>
+                <span class="dot" data-slide="2"></span>
+                <span class="dot" data-slide="3"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Jobs Section -->
+    <section class="jobs-section">
+        <div class="section-header">
+            <h2>Latest Job Opportunities</h2>
+            <p>Find your perfect match from thousands of available positions</p>
+        </div>
+
+        <div class="search-container">
+            <form class="search-form">
+                <div class="form-group">
+                    <label for="keywords">Keywords</label>
+                    <input type="text" id="keywords" placeholder="Job title, skills, company...">
+                </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" placeholder="City, state, remote...">
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category">
+                        <option value="">All Categories</option>
+                        <option value="tech">Technology</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="finance">Finance</option>
+                        <option value="healthcare">Healthcare</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="jobs-grid" id="jobsGrid">
+            <!-- Job cards will be populated by JavaScript -->
+        </div>
+    </section>
+
+    <script>
+        // Sample job data
+        const jobs = [
+            {
+                title: "Senior Frontend Developer",
+                company: "TechCorp Solutions",
+                location: "San Francisco, CA",
+                type: "Full-time",
+                salary: "$120k - $150k",
+                description: "We're looking for an experienced frontend developer to join our dynamic team. You'll work on cutting-edge projects using React, TypeScript, and modern web technologies.",
+                posted: "2 days ago"
+            },
+            {
+                title: "UX/UI Designer",
+                company: "Design Studio Pro",
+                location: "New York, NY",
+                type: "Full-time",
+                salary: "$80k - $100k",
+                description: "Join our creative team as a UX/UI Designer. Create intuitive and beautiful user experiences for web and mobile applications.",
+                posted: "1 day ago"
+            },
+            {
+                title: "Data Scientist",
+                company: "Analytics Inc",
+                location: "Remote",
+                type: "Full-time",
+                salary: "$130k - $160k",
+                description: "Analyze complex datasets and build machine learning models to drive business insights and decision-making.",
+                posted: "3 days ago"
+            },
+            {
+                title: "Marketing Manager",
+                company: "Growth Marketing Co",
+                location: "Los Angeles, CA",
+                type: "Full-time",
+                salary: "$90k - $110k",
+                description: "Lead marketing campaigns and strategies to drive customer acquisition and brand awareness.",
+                posted: "1 week ago"
+            },
+            {
+                title: "DevOps Engineer",
+                company: "Cloud Systems Ltd",
+                location: "Seattle, WA",
+                type: "Full-time",
+                salary: "$115k - $140k",
+                description: "Manage cloud infrastructure and implement CI/CD pipelines to support our development teams.",
+                posted: "4 days ago"
+            },
+            {
+                title: "Product Manager",
+                company: "Innovation Labs",
+                location: "Austin, TX",
+                type: "Full-time",
+                salary: "$125k - $145k",
+                description: "Drive product strategy and work cross-functionally to deliver exceptional user experiences.",
+                posted: "5 days ago"
+            }
+        ];
+
+        // Hamburger menu functionality
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+
+        overlay.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // Carousel functionality
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.dot');
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        // Auto-advance carousel
+        setInterval(nextSlide, 4000);
+
+        // Dot click handlers
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                showSlide(currentSlide);
+            });
+        });
+
+        // Populate job cards
+        function createJobCard(job) {
+            return `
+                <div class="job-card">
+                    <div class="job-header">
+                        <div>
+                            <div class="job-title">${job.title}</div>
+                            <div class="company-name">${job.company}</div>
+                        </div>
+                        <button class="apply-btn">Apply Now</button>
+                    </div>
+                    <div class="job-meta">
+                        <span><i class="fas fa-map-marker-alt"></i> ${job.location}</span>
+                        <span><i class="fas fa-clock"></i> ${job.type}</span>
+                        <span><i class="fas fa-dollar-sign"></i> ${job.salary}</span>
+                    </div>
+                    <div class="job-description">${job.description}</div>
+                    <div class="job-meta">
+                        <span><i class="fas fa-calendar"></i> Posted ${job.posted}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render job cards
+        document.getElementById('jobsGrid').innerHTML = jobs.map(createJobCard).join('');
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animation
+        document.querySelectorAll('.jobs-section, .job-card, .search-container').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Search functionality
+        document.querySelector('.search-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Add search logic here
+            console.log('Search submitted');
+        });
+
+        const themeToggle = document.getElementById('themeToggle');
+const body = document.body;
+
+// Load saved theme
+if (localStorage.getItem("theme") === "dark") {
+    body.classList.add("dark-mode");
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+}
+
+themeToggle.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+
+    if (body.classList.contains('dark-mode')) {
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        localStorage.setItem("theme", "dark");
+    } else {
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        localStorage.setItem("theme", "light");
+    }
+});
+
+    </script>
+</body>
+</html>
